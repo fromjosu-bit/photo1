@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>의랑초 친구사랑주간 포토부스</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Jua', sans-serif;
+            background-color: #FFF9E6; /* 따뜻한 파스텔 노랑 배경 */
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .camera-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            aspect-ratio: 3/4;
+            background-color: #000;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border: 8px solid #FFD700; /* 카메라 테두리 노랑색 추가 */
+        }
+        #camera {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1); /* 거울 모드 */
+        }
+        #countdown-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 8rem;
+            color: white;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            display: none;
+            z-index: 10;
+        }
+        .flash {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 20;
+            transition: opacity 0.1s ease-out;
+        }
+        .flash.active {
+            opacity: 1;
+        }
+        .thumbnail {
+            width: 100%;
+            aspect-ratio: 3/4;
+            object-fit: cover;
+            border-radius: 0.5rem;
+            border: 4px solid #FFEB3B; /* 썸네일 테두리 밝은 노랑 */
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transform: scaleX(-1); /* 썸네일도 거울모드 */
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center py-6 px-4">
+
+    <!-- 상단 제목 -->
+    <header class="text-center mb-6">
+        <h1 class="text-4xl md:text-5xl font-bold text-pink-500 mb-2" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.1);">친구사랑주간 포토부스</h1>
+        <p class="text-xl text-gray-600">의랑초등학교</p>
+    </header>
+
+    <!-- 메인 카메라 화면 -->
+    <main class="w-full flex flex-col items-center">
+        <div class="camera-container mb-6" id="camera-wrap">
+            <video id="camera" autoplay playsinline muted></video>
+            <div id="countdown-display">5</div>
+            <div id="flash" class="flash"></div>
+        </div>
+
+        <div class="w-full max-w-2xl">
+            <button id="start-btn" class="w-full py-5 rounded-2xl bg-yellow-400 hover:bg-yellow-500 text-white text-3xl transition-colors shadow-lg active:scale-95 font-bold">
+                📸 사진 찍기 시작!
+            </button>
+
+            <p id="status-text" class="text-center text-2xl text-pink-600 mt-4 hidden font-bold">
+                예쁜 표정을 지어주세요! (<span id="photo-count">0</span>/4)
+            </p>
+
+            <div id="thumbnails" class="grid grid-cols-4 gap-3 mt-6 hidden p-3 bg-yellow-100 rounded-xl shadow-inner">
+                <img id="thumb-0" class="thumbnail bg-gray-200" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="빈칸">
+                <img id="thumb-1" class="thumbnail bg-gray-200" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="빈칸">
+                <img id="thumb-2" class="thumbnail bg-gray-200" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="빈칸">
+                <img id="thumb-3" class="thumbnail bg-gray-200" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="빈칸">
+            </div>
+
+            <div id="result-actions" class="flex flex-col gap-3 mt-6 hidden">
+                <button id="download-btn" class="w-full py-5 rounded-2xl bg-blue-500 hover:bg-blue-600 text-white text-2xl transition-colors shadow-lg active:scale-95 font-bold">
+                    💾 완성된 사진 다운로드 (JPG)
+                </button>
+                <button id="retake-btn" class="w-full py-4 rounded-2xl bg-gray-400 hover:bg-gray-500 text-white text-xl transition-colors shadow-md active:scale-95 font-bold">
+                    🔄 다시 찍기
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <canvas id="capture-canvas" style="display: none;"></canvas>
+    <canvas id="final-canvas" width="1200" height="1800" style="display: none;"></canvas>
+
+    <script>
+        const video = document.getElementById('camera');
+        const startBtn = document.getElementById('start-btn');
+        const downloadBtn = document.getElementById('download-btn');
+        const retakeBtn = document.getElementById('retake-btn');
+        const countdownDisplay = document.getElementById('countdown-display');
+        const flash = document.getElementById('flash');
+        const statusText = document.getElementById('status-text');
+        const photoCountSpan = document.getElementById('photo-count');
+        const thumbnailsDiv = document.getElementById('thumbnails');
+        const resultActions = document.getElementById('result-actions');
+        
+        let photos = [];
+        let stream = null;
+
+        async function initCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: "user", width: { ideal: 1080 }, height: { ideal: 1440 } },
+                    audio: false 
+                });
+                video.srcObject = stream;
+            } catch (err) {
+                console.error(err);
+                alert("카메라를 불러올 수 없습니다.\n브라우저 주소창 왼쪽의 자물쇠 아이콘을 눌러 [카메라 권한]을 '허용'으로 변경해주세요!");
+            }
+        }
+
+        initCamera();
+
+        startBtn.addEventListener('click', async () => {
+            photos = [];
+            for(let i=0; i<4; i++) {
+                document.getElementById(`thumb-${i}`).src = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+            }
+            
+            startBtn.classList.add('hidden');
+            resultActions.classList.add('hidden');
+            statusText.classList.remove('hidden');
+            thumbnailsDiv.classList.remove('hidden');
+            photoCountSpan.innerText = "0";
+
+            for (let i = 0; i < 4; i++) {
+                await runCountdown(5);
+                const photoDataUrl = capturePhoto();
+                photos.push(photoDataUrl);
+                document.getElementById(`thumb-${i}`).src = photoDataUrl;
+                photoCountSpan.innerText = i + 1;
+                
+                if (i < 3) {
+                    await delay(1000);
+                }
+            }
+
+            statusText.innerText = "촬영 완료! 사진을 다운로드 하세요.";
+            resultActions.classList.remove('hidden');
+            createFinalImage();
+        });
+
+        function runCountdown(seconds) {
+            return new Promise(resolve => {
+                let timeLeft = seconds;
+                countdownDisplay.style.display = 'block';
+                countdownDisplay.innerText = timeLeft;
+
+                const timer = setInterval(() => {
+                    timeLeft--;
+                    if (timeLeft > 0) {
+                        countdownDisplay.innerText = timeLeft;
+                    } else {
+                        clearInterval(timer);
+                        countdownDisplay.style.display = 'none';
+                        flash.classList.add('active');
+                        setTimeout(() => flash.classList.remove('active'), 150);
+                        resolve();
+                    }
+                }, 1000);
+            });
+        }
+
+        function capturePhoto() {
+            const canvas = document.getElementById('capture-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            const targetWidth = 900;
+            const targetHeight = 1200;
+            canvas.width = targetWidth;
+            canvas.height = targetHeight;
+
+            const videoRatio = video.videoWidth / video.videoHeight;
+            const targetRatio = targetWidth / targetHeight;
+            
+            let sourceX = 0, sourceY = 0, sourceWidth = video.videoWidth, sourceHeight = video.videoHeight;
+
+            if (videoRatio > targetRatio) {
+                sourceWidth = video.videoHeight * targetRatio;
+                sourceX = (video.videoWidth - sourceWidth) / 2;
+            } else {
+                sourceHeight = video.videoWidth / targetRatio;
+                sourceY = (video.videoHeight - sourceHeight) / 2;
+            }
+
+            ctx.translate(targetWidth, 0);
+            ctx.scale(-1, 1);
+            
+            ctx.drawImage(video, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, targetWidth, targetHeight);
+            return canvas.toDataURL('image/jpeg', 0.9);
+        }
+
+        function createFinalImage() {
+            const canvas = document.getElementById('final-canvas');
+            const ctx = canvas.getContext('2d');
+
+            // 1. 배경색 (연한 노랑)
+            ctx.fillStyle = '#FFFACD'; // LemonChiffon 색상
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 2. 테두리 장식 (하얀색 점선)
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.lineWidth = 10;
+            ctx.setLineDash([20, 15]); // 점선 패턴
+            ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+            ctx.setLineDash([]); // 점선 초기화
+
+            const padding = 70; // 여백 늘림
+            const spacing = 40;
+            const photoWidth = (1200 - (padding * 2) - spacing) / 2;
+            const photoHeight = photoWidth * (4/3);
+            
+            const startY = 100; // 시작 위치 조정
+
+            photos.forEach((photoUrl, index) => {
+                const img = new Image();
+                img.onload = () => {
+                    const col = index % 2;
+                    const row = Math.floor(index / 2);
+
+                    const x = padding + (col * (photoWidth + spacing));
+                    const y = startY + (row * (photoHeight + spacing));
+
+                    // 사진 테두리 (진한 노랑) 및 그림자 효과
+                    ctx.fillStyle = '#FFD700'; // Gold 색상
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+                    ctx.shadowBlur = 15;
+                    ctx.shadowOffsetX = 5;
+                    ctx.shadowOffsetY = 5;
+                    ctx.fillRect(x - 12, y - 12, photoWidth + 24, photoHeight + 24);
+                    ctx.shadowColor = 'transparent'; // 그림자 초기화
+
+                    ctx.drawImage(img, x, y, photoWidth, photoHeight);
+
+                    if (index === 3) {
+                        drawText(ctx, canvas.width, startY + (2 * photoHeight) + spacing + 150);
+                    }
+                };
+                img.src = photoUrl;
+            });
+        }
+
+        function drawText(ctx, canvasWidth, yPos) {
+            ctx.fillStyle = '#FF69B4'; // 핫핑크 글씨
+            ctx.font = 'bold 80px "Jua", sans-serif'; // 폰트 크기 키움
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            ctx.lineWidth = 10;
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.strokeText('의랑초등학교 친구사랑주간', canvasWidth / 2, yPos);
+            ctx.fillText('의랑초등학교 친구사랑주간', canvasWidth / 2, yPos);
+
+            const today = new Date();
+            const dateStr = `${today.getFullYear()}.${today.getMonth()+1}.${today.getDate()}`;
+            ctx.fillStyle = '#8B4513'; // 갈색
+            ctx.font = '50px "Jua", sans-serif'; // 폰트 크기 키움
+            ctx.fillText(dateStr, canvasWidth / 2, yPos + 100);
+
+            // 장식 요소 (하트) 그리기
+            drawHeart(ctx, canvasWidth / 2 - 350, yPos, 40, '#FF69B4');
+            drawHeart(ctx, canvasWidth / 2 + 350, yPos, 40, '#FF69B4');
+        }
+
+        // 하트 그리기 보조 함수
+        function drawHeart(ctx, x, y, size, color) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.bezierCurveTo(x - size / 2, y - size / 2, x - size, y + size / 3, x, y + size);
+            ctx.bezierCurveTo(x + size, y + size / 3, x + size / 2, y - size / 2, x, y);
+            ctx.fill();
+        }
+
+        downloadBtn.addEventListener('click', () => {
+            const canvas = document.getElementById('final-canvas');
+            const dataUrl = canvas.toDataURL('image/jpeg', 1.0);
+            
+            const link = document.createElement('a');
+            link.download = `의랑초_인생네컷_${Date.now()}.jpg`;
+            link.href = dataUrl;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        retakeBtn.addEventListener('click', () => {
+            resultActions.classList.add('hidden');
+            statusText.classList.add('hidden');
+            thumbnailsDiv.classList.add('hidden');
+            startBtn.classList.remove('hidden');
+            statusText.innerHTML = `예쁜 표정을 지어주세요! (<span id="photo-count">0</span>/4)`;
+        });
+
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+    </script>
+</body>
+</html>
