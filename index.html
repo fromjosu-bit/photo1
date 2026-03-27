@@ -3,44 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>의랑초 친구사랑주간 포토부스</title>
+    <title>의랑초 인생네컷</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+    <!-- 귀여운 폰트(Jua)와 힙한 폰트(Black Han Sans), 기본 UI 폰트(Noto Sans KR) 불러오기 -->
+    <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Jua&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Jua', sans-serif;
-            background-color: #FFF9E6; /* 따뜻한 파스텔 노랑 배경 */
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             user-select: none;
             -webkit-user-select: none;
         }
-        .camera-container {
+        /* 캔버스에 폰트를 그리기 위해 미리 로드해두는 숨김 처리 */
+        .font-preload { position: absolute; opacity: 0; pointer-events: none; }
+        
+        /* 앱 컨테이너 (깔끔한 그림자 및 모서리 둥글게) */
+        .app-container {
+            background-color: white;
+            border-radius: 2rem;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .camera-wrap {
             position: relative;
             width: 100%;
-            max-width: 600px;
             aspect-ratio: 3/4;
             background-color: #000;
-            border-radius: 1.5rem;
             overflow: hidden;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            border: 8px solid #FFD700; /* 카메라 테두리 노랑색 추가 */
         }
+
         #camera {
             width: 100%;
             height: 100%;
             object-fit: cover;
             transform: scaleX(-1); /* 거울 모드 */
         }
+
         #countdown-display {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 8rem;
+            font-size: 7rem;
+            font-weight: bold;
             color: white;
-            text-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            text-shadow: 0 4px 20px rgba(0,0,0,0.6);
             display: none;
             z-index: 10;
         }
+
         .flash {
             position: absolute;
             top: 0;
@@ -53,81 +65,140 @@
             z-index: 20;
             transition: opacity 0.1s ease-out;
         }
-        .flash.active {
-            opacity: 1;
-        }
-        .thumbnail {
+        .flash.active { opacity: 1; }
+
+        /* 결과 미리보기 이미지 */
+        #preview-image {
             width: 100%;
-            aspect-ratio: 3/4;
-            object-fit: cover;
-            border-radius: 0.5rem;
-            border: 4px solid #FFEB3B; /* 썸네일 테두리 밝은 노랑 */
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transform: scaleX(-1); /* 썸네일도 거울모드 */
+            height: auto;
+            border-radius: 1rem;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+        }
+
+        /* 프레임 선택 라디오 버튼 스타일링 */
+        .frame-selector input[type="radio"] { display: none; }
+        .frame-selector label {
+            display: inline-block;
+            padding: 1rem 1.5rem;
+            border-radius: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+        .frame-selector input[type="radio"]:checked + label.hip-label {
+            background-color: #111; color: white; border-color: #000; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .frame-selector input[type="radio"]:not(:checked) + label.hip-label {
+            background-color: #f3f4f6; color: #4b5563;
+        }
+        .frame-selector input[type="radio"]:checked + label.cute-label {
+            background-color: #FFF06C; color: #8B4513; border-color: #FFD700; box-shadow: 0 4px 10px rgba(255,215,0,0.3);
+        }
+        .frame-selector input[type="radio"]:not(:checked) + label.cute-label {
+            background-color: #f3f4f6; color: #4b5563;
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center py-6 px-4">
+<body class="min-h-screen flex items-center justify-center py-6 px-4">
 
-    <!-- 상단 제목 -->
-    <header class="text-center mb-6">
-        <h1 class="text-4xl md:text-5xl font-bold text-pink-500 mb-2" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.1);">친구사랑주간 포토부스</h1>
-        <p class="text-xl text-gray-600">의랑초등학교</p>
-    </header>
+    <!-- 폰트 강제 로드용 숨김 요소 -->
+    <div class="font-preload">
+        <span style="font-family: 'Jua';">폰트로드</span>
+        <span style="font-family: 'Black Han Sans';">폰트로드</span>
+    </div>
 
-    <!-- 메인 카메라 화면 -->
-    <main class="w-full flex flex-col items-center">
-        <div class="camera-container mb-6" id="camera-wrap">
-            <video id="camera" autoplay playsinline muted></video>
-            <div id="countdown-display">5</div>
-            <div id="flash" class="flash"></div>
-        </div>
-
-        <div class="w-full max-w-2xl">
-            <button id="start-btn" class="w-full py-5 rounded-2xl bg-yellow-400 hover:bg-yellow-500 text-white text-3xl transition-colors shadow-lg active:scale-95 font-bold">
-                📸 사진 찍기 시작!
-            </button>
-
-            <p id="status-text" class="text-center text-2xl text-pink-600 mt-4 hidden font-bold">
-                예쁜 표정을 지어주세요! (<span id="photo-count">0</span>/4)
-            </p>
-
-            <div id="thumbnails" class="grid grid-cols-4 gap-3 mt-6 hidden p-3 bg-yellow-100 rounded-xl shadow-inner">
-                <img id="thumb-0" class="thumbnail bg-gray-200" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="빈칸">
-                <img id="thumb-1" class="thumbnail bg-gray-200" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="빈칸">
-                <img id="thumb-2" class="thumbnail bg-gray-200" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="빈칸">
-                <img id="thumb-3" class="thumbnail bg-gray-200" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="빈칸">
+    <!-- 메인 앱 컨테이너 -->
+    <div class="app-container w-full max-w-lg flex flex-col items-center">
+        
+        <!-- 촬영 전 / 촬영 중 화면 (View 1) -->
+        <div id="view-camera" class="w-full flex flex-col items-center">
+            <div class="py-6 text-center">
+                <h1 class="text-3xl font-bold text-gray-800">📸 의랑초 포토부스</h1>
+                <p class="text-gray-500 mt-1">친구사랑주간 인생네컷</p>
             </div>
 
-            <div id="result-actions" class="flex flex-col gap-3 mt-6 hidden">
-                <button id="download-btn" class="w-full py-5 rounded-2xl bg-blue-500 hover:bg-blue-600 text-white text-2xl transition-colors shadow-lg active:scale-95 font-bold">
-                    💾 완성된 사진 다운로드 (JPG)
+            <div class="camera-wrap w-full">
+                <video id="camera" autoplay playsinline muted></video>
+                <div id="countdown-display">5</div>
+                <div id="flash" class="flash"></div>
+            </div>
+
+            <div class="w-full p-6 bg-white">
+                <button id="start-btn" class="w-full py-4 rounded-2xl bg-gray-900 hover:bg-black text-white text-2xl font-bold transition-transform active:scale-95 shadow-lg">
+                    사진 찍기 시작
                 </button>
-                <button id="retake-btn" class="w-full py-4 rounded-2xl bg-gray-400 hover:bg-gray-500 text-white text-xl transition-colors shadow-md active:scale-95 font-bold">
-                    🔄 다시 찍기
+                <p id="status-text" class="text-center text-xl text-indigo-600 font-bold hidden py-4">
+                    카메라를 보세요! (<span id="photo-count">0</span>/4)
+                </p>
+            </div>
+        </div>
+
+        <!-- 촬영 완료 및 프레임 선택 화면 (View 2) -->
+        <div id="view-result" class="w-full flex flex-col items-center p-6 hidden">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">✨ 찰칵! 사진 완성 ✨</h2>
+            
+            <!-- 완성본 미리보기 -->
+            <div class="w-full max-w-sm mb-6 relative">
+                <img id="preview-image" src="" alt="완성된 사진 미리보기">
+            </div>
+
+            <!-- 프레임 선택기 -->
+            <div class="w-full bg-gray-50 p-4 rounded-2xl mb-6">
+                <p class="text-center text-sm text-gray-500 font-bold mb-3">👇 원하는 프레임을 선택하세요 👇</p>
+                <div class="flex justify-center gap-3 frame-selector">
+                    <div>
+                        <input type="radio" id="style-cute" name="frame-style" value="cute" checked>
+                        <label for="style-cute" class="cute-label" style="font-family: 'Jua', sans-serif; font-size: 1.1rem;">
+                            💛 귀여운 노랑
+                        </label>
+                    </div>
+                    <div>
+                        <input type="radio" id="style-hip" name="frame-style" value="hip">
+                        <label for="style-hip" class="hip-label" style="font-family: 'Black Han Sans', sans-serif; font-size: 1.1rem; letter-spacing: 1px;">
+                            🖤 힙한 흑백
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 하단 버튼들 -->
+            <div class="w-full flex gap-3">
+                <button id="retake-btn" class="flex-1 py-4 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold transition-colors active:scale-95">
+                    다시 찍기
+                </button>
+                <button id="download-btn" class="flex-[2] py-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-colors shadow-lg active:scale-95 text-lg">
+                    다운로드 (JPG)
                 </button>
             </div>
         </div>
-    </main>
 
+    </div>
+
+    <!-- 사진 캡처 및 최종 4x6 합성용 숨김 캔버스 -->
     <canvas id="capture-canvas" style="display: none;"></canvas>
     <canvas id="final-canvas" width="1200" height="1800" style="display: none;"></canvas>
 
     <script>
         const video = document.getElementById('camera');
         const startBtn = document.getElementById('start-btn');
+        const viewCamera = document.getElementById('view-camera');
+        const viewResult = document.getElementById('view-result');
         const downloadBtn = document.getElementById('download-btn');
         const retakeBtn = document.getElementById('retake-btn');
         const countdownDisplay = document.getElementById('countdown-display');
         const flash = document.getElementById('flash');
         const statusText = document.getElementById('status-text');
         const photoCountSpan = document.getElementById('photo-count');
-        const thumbnailsDiv = document.getElementById('thumbnails');
-        const resultActions = document.getElementById('result-actions');
+        const previewImage = document.getElementById('preview-image');
+        const styleRadios = document.querySelectorAll('input[name="frame-style"]');
         
         let photos = [];
         let stream = null;
+        let currentStyle = 'cute';
 
+        // 1. 카메라 권한 요청 및 비디오 연결
         async function initCamera() {
             try {
                 stream = await navigator.mediaDevices.getUserMedia({ 
@@ -137,41 +208,43 @@
                 video.srcObject = stream;
             } catch (err) {
                 console.error(err);
-                alert("카메라를 불러올 수 없습니다.\n브라우저 주소창 왼쪽의 자물쇠 아이콘을 눌러 [카메라 권한]을 '허용'으로 변경해주세요!");
+                alert("카메라 권한이 필요합니다. 브라우저 설정에서 카메라를 허용해주세요!");
             }
         }
-
         initCamera();
 
+        // 2. 사진 찍기 시작 버튼 클릭
         startBtn.addEventListener('click', async () => {
             photos = [];
-            for(let i=0; i<4; i++) {
-                document.getElementById(`thumb-${i}`).src = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
-            }
-            
             startBtn.classList.add('hidden');
-            resultActions.classList.add('hidden');
             statusText.classList.remove('hidden');
-            thumbnailsDiv.classList.remove('hidden');
             photoCountSpan.innerText = "0";
 
             for (let i = 0; i < 4; i++) {
                 await runCountdown(5);
                 const photoDataUrl = capturePhoto();
                 photos.push(photoDataUrl);
-                document.getElementById(`thumb-${i}`).src = photoDataUrl;
                 photoCountSpan.innerText = i + 1;
-                
-                if (i < 3) {
-                    await delay(1000);
-                }
+                if (i < 3) await delay(1000);
             }
 
-            statusText.innerText = "촬영 완료! 사진을 다운로드 하세요.";
-            resultActions.classList.remove('hidden');
-            createFinalImage();
+            // 촬영 완료 후 결과 화면으로 전환
+            viewCamera.classList.add('hidden');
+            viewResult.classList.remove('hidden');
+            
+            // 기본 스타일로 렌더링
+            renderFinalImage();
         });
 
+        // 라디오 버튼(프레임 선택) 변경 이벤트
+        styleRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                currentStyle = e.target.value;
+                renderFinalImage(); // 스타일 바뀔때마다 캔버스 새로 그림
+            });
+        });
+
+        // 3. 카운트다운 함수
         function runCountdown(seconds) {
             return new Promise(resolve => {
                 let timeLeft = seconds;
@@ -193,10 +266,10 @@
             });
         }
 
+        // 4. 비디오 캡처
         function capturePhoto() {
             const canvas = document.getElementById('capture-canvas');
             const ctx = canvas.getContext('2d');
-            
             const targetWidth = 900;
             const targetHeight = 1200;
             canvas.width = targetWidth;
@@ -204,7 +277,6 @@
 
             const videoRatio = video.videoWidth / video.videoHeight;
             const targetRatio = targetWidth / targetHeight;
-            
             let sourceX = 0, sourceY = 0, sourceWidth = video.videoWidth, sourceHeight = video.videoHeight;
 
             if (videoRatio > targetRatio) {
@@ -217,100 +289,191 @@
 
             ctx.translate(targetWidth, 0);
             ctx.scale(-1, 1);
-            
             ctx.drawImage(video, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, targetWidth, targetHeight);
+            
+            // 힙한 흑백 스타일을 위해 사진 원본 자체를 흑백으로 저장하지는 않음 (렌더링때 적용)
             return canvas.toDataURL('image/jpeg', 0.9);
         }
 
-        
-        function createFinalImage() {
+        // 5. 프레임 합성 렌더링 (핵심 수정 부분)
+        function renderFinalImage() {
             const canvas = document.getElementById('final-canvas');
             const ctx = canvas.getContext('2d');
 
-            // 1. 배경색 (연한 노랑)
-            ctx.fillStyle = '#FFFACD'; // LemonChiffon 색상
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            // --- 프레임 테마 설정 ---
+            if (currentStyle === 'cute') {
+                ctx.fillStyle = '#FFF9E6'; // 따뜻한 연노랑
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // 귀여운 테두리
+                ctx.strokeStyle = '#FFD700';
+                ctx.lineWidth = 15;
+                ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+            } else { // hip style
+                ctx.fillStyle = '#111111'; // 완전 블랙
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // 힙한 얇은 흰색 테두리
+                ctx.strokeStyle = '#FFFFFF';
+                ctx.lineWidth = 4;
+                ctx.strokeRect(30, 30, canvas.width - 60, canvas.height - 60);
+                ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80);
+            }
 
-            // 2. 테두리 장식 (하얀색 점선)
-            ctx.strokeStyle = '#FFFFFF';
-            ctx.lineWidth = 10;
-            ctx.setLineDash([20, 15]); // 점선 패턴
-            ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
-            ctx.setLineDash([]); // 점선 초기화
-
-            const padding = 70; // 여백 늘림
+            // --- 사진 배치 계산 ---
+            const padding = 70;
             const spacing = 40;
             const photoWidth = (1200 - (padding * 2) - spacing) / 2;
             const photoHeight = photoWidth * (4/3);
-            
-            const startY = 100; // 시작 위치 조정
+            const startY = 100;
 
-            photos.forEach((photoUrl, index) => {
-                const img = new Image();
-                img.onload = () => {
-                    const col = index % 2;
-                    const row = Math.floor(index / 2);
+            // 비동기 이미지 로딩 처리를 위한 Promise 배열
+            const loadPromises = photos.map((photoUrl, index) => {
+                return new Promise(resolve => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const col = index % 2;
+                        const row = Math.floor(index / 2);
+                        const x = padding + (col * (photoWidth + spacing));
+                        const y = startY + (row * (photoHeight + spacing));
 
-                    const x = padding + (col * (photoWidth + spacing));
-                    const y = startY + (row * (photoHeight + spacing));
+                        // 프레임에 따른 사진 효과
+                        if (currentStyle === 'cute') {
+                            // 사진 배경(흰색 테두리)
+                            ctx.fillStyle = '#FFFFFF';
+                            roundRect(ctx, x - 15, y - 15, photoWidth + 30, photoHeight + 30, 20);
+                            ctx.fill();
+                            // 둥근 모서리로 사진 그리기
+                            ctx.save();
+                            roundRect(ctx, x, y, photoWidth, photoHeight, 10);
+                            ctx.clip();
+                            ctx.drawImage(img, x, y, photoWidth, photoHeight);
+                            ctx.restore();
+                        } else {
+                            // 힙한 스타일: 완전 직각, 얇은 회색/흰색 테두리, 흑백 필터
+                            ctx.fillStyle = '#333333';
+                            ctx.fillRect(x - 5, y - 5, photoWidth + 10, photoHeight + 10);
+                            
+                            // 흑백 처리
+                            ctx.save();
+                            ctx.filter = 'grayscale(100%) contrast(110%)';
+                            ctx.drawImage(img, x, y, photoWidth, photoHeight);
+                            ctx.restore();
+                        }
+                        resolve();
+                    };
+                    img.src = photoUrl;
+                });
+            });
 
-                    // 사진 테두리 (진한 노랑) 및 그림자 효과
-                    ctx.fillStyle = '#FFD700'; // Gold 색상
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
-                    ctx.shadowBlur = 15;
-                    ctx.shadowOffsetX = 5;
-                    ctx.shadowOffsetY = 5;
-                    ctx.fillRect(x - 12, y - 12, photoWidth + 24, photoHeight + 24);
-                    ctx.shadowColor = 'transparent'; // 그림자 초기화
+            // 모든 사진이 그려진 후에 텍스트와 장식 그리기
+            Promise.all(loadPromises).then(() => {
+                const textYPos = startY + (2 * photoHeight) + spacing + 120;
+                
+                if (currentStyle === 'cute') {
+                    // 귀여운 폰트 및 텍스트
+                    ctx.fillStyle = '#FF69B4'; // 핑크
+                    ctx.font = 'bold 70px "Jua", sans-serif';
+                    ctx.textAlign = 'center';
+                    
+                    // 1번줄, 2번줄 나누기
+                    ctx.fillText('의랑초등학교', canvas.width / 2, textYPos);
+                    ctx.fillText('친구사랑주간', canvas.width / 2, textYPos + 80);
+                    
+                    // 날짜
+                    ctx.fillStyle = '#8B4513'; // 갈색
+                    ctx.font = '45px "Jua", sans-serif';
+                    ctx.fillText('2026.03.27', canvas.width / 2, textYPos + 170);
 
-                    ctx.drawImage(img, x, y, photoWidth, photoHeight);
+                    // 양옆 하트 장식 (위치 겹치지 않게 바깥으로 뺌)
+                    drawHeart(ctx, 220, textYPos + 40, 45, '#FF85C0');
+                    drawHeart(ctx, canvas.width - 220, textYPos + 40, 45, '#FF85C0');
 
-                    if (index === 3) {
-                        drawText(ctx, canvas.width, startY + (2 * photoHeight) + spacing + 150);
-                    }
-                };
-                img.src = photoUrl;
+                } else {
+                    // 힙한 폰트 및 텍스트 (흑백)
+                    ctx.fillStyle = '#FFFFFF'; // 흰색
+                    ctx.font = '75px "Black Han Sans", sans-serif';
+                    ctx.textAlign = 'center';
+                    
+                    ctx.fillText('의랑초등학교', canvas.width / 2, textYPos);
+                    ctx.fillText('친구사랑주간', canvas.width / 2, textYPos + 90);
+                    
+                    ctx.fillStyle = '#AAAAAA'; // 회색 날짜
+                    ctx.font = '45px "Black Han Sans", sans-serif';
+                    ctx.fillText('2026.03.27', canvas.width / 2, textYPos + 180);
+
+                    // 양옆 별 장식
+                    drawStar(ctx, 200, textYPos + 40, 5, 40, 15, '#FFFFFF');
+                    drawStar(ctx, canvas.width - 200, textYPos + 40, 5, 40, 15, '#FFFFFF');
+                }
+
+                // 캔버스 그림이 완성되면 미리보기 이미지 태그에 적용!
+                previewImage.src = canvas.toDataURL('image/jpeg', 0.95);
             });
         }
 
-        function drawText(ctx, canvasWidth, yPos) {
-            ctx.fillStyle = '#FF69B4'; // 핫핑크 글씨
-            ctx.font = 'bold 80px "Jua", sans-serif'; // 폰트 크기 키움
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            
-            ctx.lineWidth = 10;
-            ctx.strokeStyle = '#FFFFFF';
-            ctx.strokeText('의랑초등학교 친구사랑주간', canvasWidth / 2, yPos);
-            ctx.fillText('의랑초등학교 친구사랑주간', canvasWidth / 2, yPos);
+        // --- 유틸리티 함수들 ---
+        function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
-            const today = new Date();
-            const dateStr = `${today.getFullYear()}.${today.getMonth()+1}.${today.getDate()}`;
-            ctx.fillStyle = '#8B4513'; // 갈색
-            ctx.font = '50px "Jua", sans-serif'; // 폰트 크기 키움
-            ctx.fillText(dateStr, canvasWidth / 2, yPos + 100);
-
-            // 장식 요소 (하트) 그리기
-            drawHeart(ctx, canvasWidth / 2 - 350, yPos, 40, '#FF69B4');
-            drawHeart(ctx, canvasWidth / 2 + 350, yPos, 40, '#FF69B4');
+        // 모서리가 둥근 사각형 그리기
+        function roundRect(ctx, x, y, width, height, radius) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
         }
 
-        // 하트 그리기 보조 함수
+        // 하트 그리기
         function drawHeart(ctx, x, y, size, color) {
+            ctx.save();
             ctx.fillStyle = color;
             ctx.beginPath();
             ctx.moveTo(x, y);
-            ctx.bezierCurveTo(x - size / 2, y - size / 2, x - size, y + size / 3, x, y + size);
-            ctx.bezierCurveTo(x + size, y + size / 3, x + size / 2, y - size / 2, x, y);
+            ctx.bezierCurveTo(x - size/2, y - size/2, x - size, y + size/3, x, y + size);
+            ctx.bezierCurveTo(x + size, y + size/3, x + size/2, y - size/2, x, y);
             ctx.fill();
+            ctx.restore();
         }
 
+        // 별 그리기
+        function drawStar(ctx, cx, cy, spikes, outerRadius, innerRadius, color) {
+            ctx.save();
+            let rot = Math.PI / 2 * 3;
+            let x = cx, y = cy;
+            let step = Math.PI / spikes;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - outerRadius);
+            for (i = 0; i < spikes; i++) {
+                x = cx + Math.cos(rot) * outerRadius;
+                y = cy + Math.sin(rot) * outerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+                x = cx + Math.cos(rot) * innerRadius;
+                y = cy + Math.sin(rot) * innerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+            }
+            ctx.lineTo(cx, cy - outerRadius);
+            ctx.closePath();
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.restore();
+        }
+
+        // 6. 버튼 이벤트들
         downloadBtn.addEventListener('click', () => {
             const canvas = document.getElementById('final-canvas');
             const dataUrl = canvas.toDataURL('image/jpeg', 1.0);
-            
             const link = document.createElement('a');
-            link.download = `의랑초_인생네컷_${Date.now()}.jpg`;
+            const styleName = currentStyle === 'cute' ? '귀여운노랑' : '힙한흑백';
+            link.download = `의랑초_인생네컷_${styleName}.jpg`;
             link.href = dataUrl;
             document.body.appendChild(link);
             link.click();
@@ -318,16 +481,12 @@
         });
 
         retakeBtn.addEventListener('click', () => {
-            resultActions.classList.add('hidden');
-            statusText.classList.add('hidden');
-            thumbnailsDiv.classList.add('hidden');
+            viewResult.classList.add('hidden');
+            viewCamera.classList.remove('hidden');
             startBtn.classList.remove('hidden');
-            statusText.innerHTML = `예쁜 표정을 지어주세요! (<span id="photo-count">0</span>/4)`;
+            statusText.classList.add('hidden');
+            previewImage.src = "";
         });
-
-        function delay(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
     </script>
 </body>
 </html>
