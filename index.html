@@ -428,7 +428,9 @@
             const dataUrl = canvas.toDataURL('image/jpeg', 1.0);
             const link = document.createElement('a');
             const styleName = currentStyle === 'cute' ? '귀여운노랑' : '힙한흑백';
-            link.download = `의랑초_인생네컷_${styleName}.jpg`;
+            // 파일명 뒤에 현재 시간(밀리초)을 붙여서 항상 다른 이름으로 저장되게 처리
+            const timestamp = Date.now();
+            link.download = `의랑초_인생네컷_${styleName}_${timestamp}.jpg`;
             link.href = dataUrl;
             document.body.appendChild(link);
             link.click();
