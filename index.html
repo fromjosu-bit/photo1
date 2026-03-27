@@ -365,19 +365,17 @@
 
             // 모든 사진이 그려진 후에 텍스트와 장식 그리기
             Promise.all(loadPromises).then(() => {
-                // 글씨 위치 상향 조정 (프레임 밖으로 나가지 않도록)
-                const textYPos1 = startY + (2 * photoHeight) + spacing + 60; // 첫 번째 줄 Y (약 1560)
-                const textYPos2 = textYPos1 + 80; // 두 번째 줄 Y (약 1640)
-                const dateYPos = textYPos2 + 70; // 날짜 Y (약 1710)
-                
-                // 꾸밈 요소(하트, 별)는 1번째 줄과 2번째 줄 사이에 위치
-                const decorYPos = textYPos1 + 40;
+                // 글씨가 사진과 겹치지 않도록 전체적인 Y좌표(세로 위치)를 넉넉하게 아래로 내림
+                const textYPos1 = 1590; // 첫 번째 줄 (의랑초등학교)
+                const textYPos2 = 1670; // 두 번째 줄 (친구사랑주간)
+                const dateYPos = 1740;  // 세 번째 줄 (날짜)
                 
                 if (currentStyle === 'cute') {
                     // 귀여운 폰트 및 텍스트
                     ctx.fillStyle = '#FF69B4'; // 핑크
                     ctx.font = 'bold 70px "Jua", sans-serif';
                     ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
                     
                     ctx.fillText('의랑초등학교', canvas.width / 2, textYPos1);
                     ctx.fillText('친구사랑주간', canvas.width / 2, textYPos2);
@@ -387,15 +385,12 @@
                     ctx.font = '45px "Jua", sans-serif';
                     ctx.fillText('2026.03.27', canvas.width / 2, dateYPos);
 
-                    // 양옆 하트 장식 (글자들 사이 높이에 배치)
-                    drawHeart(ctx, canvas.width / 2 - 270, decorYPos, 40, '#FF85C0');
-                    drawHeart(ctx, canvas.width / 2 + 270, decorYPos, 40, '#FF85C0');
-
                 } else {
                     // 힙한 폰트 및 텍스트
                     ctx.fillStyle = '#FFFFFF'; // 흰색
                     ctx.font = '75px "Black Han Sans", sans-serif';
                     ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
                     
                     ctx.fillText('의랑초등학교', canvas.width / 2, textYPos1);
                     ctx.fillText('친구사랑주간', canvas.width / 2, textYPos2);
@@ -403,10 +398,6 @@
                     ctx.fillStyle = '#AAAAAA'; // 회색 날짜
                     ctx.font = '45px "Black Han Sans", sans-serif';
                     ctx.fillText('2026.03.27', canvas.width / 2, dateYPos);
-
-                    // 양옆 별 장식 (글자들 사이 높이에 배치)
-                    drawStar(ctx, canvas.width / 2 - 270, decorYPos, 5, 35, 13, '#FFFFFF');
-                    drawStar(ctx, canvas.width / 2 + 270, decorYPos, 5, 35, 13, '#FFFFFF');
                 }
 
                 // 캔버스 그림이 완성되면 미리보기 이미지 태그에 적용!
@@ -430,43 +421,6 @@
             ctx.lineTo(x, y + radius);
             ctx.quadraticCurveTo(x, y, x + radius, y);
             ctx.closePath();
-        }
-
-        // 하트 그리기
-        function drawHeart(ctx, x, y, size, color) {
-            ctx.save();
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-            ctx.bezierCurveTo(x - size/2, y - size/2, x - size, y + size/3, x, y + size);
-            ctx.bezierCurveTo(x + size, y + size/3, x + size/2, y - size/2, x, y);
-            ctx.fill();
-            ctx.restore();
-        }
-
-        // 별 그리기
-        function drawStar(ctx, cx, cy, spikes, outerRadius, innerRadius, color) {
-            ctx.save();
-            let rot = Math.PI / 2 * 3;
-            let x = cx, y = cy;
-            let step = Math.PI / spikes;
-            ctx.beginPath();
-            ctx.moveTo(cx, cy - outerRadius);
-            for (let i = 0; i < spikes; i++) {
-                x = cx + Math.cos(rot) * outerRadius;
-                y = cy + Math.sin(rot) * outerRadius;
-                ctx.lineTo(x, y);
-                rot += step;
-                x = cx + Math.cos(rot) * innerRadius;
-                y = cy + Math.sin(rot) * innerRadius;
-                ctx.lineTo(x, y);
-                rot += step;
-            }
-            ctx.lineTo(cx, cy - outerRadius);
-            ctx.closePath();
-            ctx.fillStyle = color;
-            ctx.fill();
-            ctx.restore();
         }
 
         // 6. 버튼 이벤트들
