@@ -324,7 +324,9 @@
             const spacing = 40;
             const photoWidth = (1200 - (padding * 2) - spacing) / 2;
             const photoHeight = photoWidth * (4/3);
-            const startY = 100;
+            
+            // 상단 텍스트 공간을 위해 사진 시작 위치(startY)를 아래로 내림 (기존 100 -> 200)
+            const startY = 200; 
 
             // 비동기 이미지 로딩 처리를 위한 Promise 배열
             const loadPromises = photos.map((photoUrl, index) => {
@@ -365,39 +367,36 @@
 
             // 모든 사진이 그려진 후에 텍스트와 장식 그리기
             Promise.all(loadPromises).then(() => {
-                // 글씨가 사진과 겹치지 않도록 전체적인 Y좌표(세로 위치)를 넉넉하게 아래로 내림
-                const textYPos1 = 1590; // 첫 번째 줄 (의랑초등학교)
-                const textYPos2 = 1670; // 두 번째 줄 (친구사랑주간)
-                const dateYPos = 1740;  // 세 번째 줄 (날짜)
+                // 상단 한 줄 텍스트 Y좌표 (위에서 110px 내려온 지점)
+                const topTextY = 110; 
+                // 하단 날짜 Y좌표 (전체 1800 픽셀 중 사진이 1600픽셀에서 끝나므로 1700에 위치시켜 하단 여백의 정중앙에 배치)
+                const bottomDateY = 1700;  
                 
                 if (currentStyle === 'cute') {
-                    // 귀여운 폰트 및 텍스트
+                    // 귀여운 폰트 및 텍스트 (상단)
                     ctx.fillStyle = '#FF69B4'; // 핑크
                     ctx.font = 'bold 70px "Jua", sans-serif';
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
+                    ctx.fillText('의랑초등학교 친구사랑주간', canvas.width / 2, topTextY);
                     
-                    ctx.fillText('의랑초등학교', canvas.width / 2, textYPos1);
-                    ctx.fillText('친구사랑주간', canvas.width / 2, textYPos2);
-                    
-                    // 날짜
+                    // 귀여운 폰트 날짜 (하단)
                     ctx.fillStyle = '#8B4513'; // 갈색
                     ctx.font = '45px "Jua", sans-serif';
-                    ctx.fillText('2026.3.30. ~ 4.3.', canvas.width / 2, dateYPos);
+                    ctx.fillText('2026.3.30. ~ 4.3.', canvas.width / 2, bottomDateY);
 
                 } else {
-                    // 힙한 폰트 및 텍스트
+                    // 힙한 폰트 및 텍스트 (상단)
                     ctx.fillStyle = '#FFFFFF'; // 흰색
                     ctx.font = '75px "Black Han Sans", sans-serif';
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
+                    ctx.fillText('의랑초등학교 친구사랑주간', canvas.width / 2, topTextY);
                     
-                    ctx.fillText('의랑초등학교', canvas.width / 2, textYPos1);
-                    ctx.fillText('친구사랑주간', canvas.width / 2, textYPos2);
-                    
+                    // 힙한 폰트 날짜 (하단)
                     ctx.fillStyle = '#AAAAAA'; // 회색 날짜
                     ctx.font = '45px "Black Han Sans", sans-serif';
-                    ctx.fillText('2026.3.30. ~ 4.3.', canvas.width / 2, dateYPos);
+                    ctx.fillText('2026.3.30. ~ 4.3.', canvas.width / 2, bottomDateY);
                 }
 
                 // 캔버스 그림이 완성되면 미리보기 이미지 태그에 적용!
