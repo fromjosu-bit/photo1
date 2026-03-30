@@ -201,8 +201,9 @@
         // 1. 카메라 권한 요청 및 비디오 연결
         async function initCamera() {
             try {
+                // 기기의 기본 광각(16:9) 해상도를 요청하여 강제 줌(확대) 현상을 방지합니다.
                 stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: "user", width: { ideal: 1080 }, height: { ideal: 1440 } },
+                    video: { facingMode: "user", width: { ideal: 1920 }, height: { ideal: 1080 } },
                     audio: false 
                 });
                 video.srcObject = stream;
@@ -291,7 +292,8 @@
             ctx.scale(-1, 1);
             ctx.drawImage(video, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, targetWidth, targetHeight);
             
-            return canvas.toDataURL('image/jpeg', 0.9);
+            // 압축으로 인한 흐릿함과 색상 왜곡을 막기 위해 원본 화질(PNG) 그대로 캡처
+            return canvas.toDataURL('image/png');
         }
 
         // 5. 프레임 합성 렌더링 (핵심 수정 부분)
