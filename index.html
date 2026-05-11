@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>의랑초 인생네컷</title>
+    <title>스승의날 인생네컷</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 귀여운 폰트(Jua)와 힙한 폰트(Black Han Sans), 기본 UI 폰트(Noto Sans KR) 불러오기 -->
-    <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Jua&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <!-- 깔끔한 기본 UI 폰트(Noto Sans KR) 및 포인트 폰트 불러오기 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Noto Sans KR', sans-serif;
@@ -14,8 +14,6 @@
             user-select: none;
             -webkit-user-select: none;
         }
-        /* 캔버스에 폰트를 그리기 위해 미리 로드해두는 숨김 처리 */
-        .font-preload { position: absolute; opacity: 0; pointer-events: none; }
         
         /* 앱 컨테이너 (깔끔한 그림자 및 모서리 둥글게) */
         .app-container {
@@ -76,38 +74,35 @@
             transition: all 0.3s ease;
         }
 
-        /* 프레임 선택 라디오 버튼 스타일링 */
+        /* 프레임 선택 라디오 버튼 스타일링 (3종) */
         .frame-selector input[type="radio"] { display: none; }
         .frame-selector label {
             display: inline-block;
-            padding: 1rem 1.5rem;
-            border-radius: 1rem;
-            font-weight: bold;
+            padding: 0.8rem 1.2rem;
+            border-radius: 0.8rem;
+            font-weight: 700;
+            font-size: 1rem;
             cursor: pointer;
             transition: all 0.2s;
             border: 2px solid transparent;
+            color: #4b5563;
+            background-color: #f3f4f6;
         }
-        .frame-selector input[type="radio"]:checked + label.hip-label {
-            background-color: #111; color: white; border-color: #000; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        /* 파스텔 핑크 */
+        .frame-selector input[type="radio"]:checked + label.pink-label {
+            background-color: #F28FA0; color: white; box-shadow: 0 4px 10px rgba(242,143,160,0.4);
         }
-        .frame-selector input[type="radio"]:not(:checked) + label.hip-label {
-            background-color: #f3f4f6; color: #4b5563;
+        /* 톤다운 블루 */
+        .frame-selector input[type="radio"]:checked + label.blue-label {
+            background-color: #6788A8; color: white; box-shadow: 0 4px 10px rgba(103,136,168,0.4);
         }
-        .frame-selector input[type="radio"]:checked + label.cute-label {
-            background-color: #FFF06C; color: #8B4513; border-color: #FFD700; box-shadow: 0 4px 10px rgba(255,215,0,0.3);
-        }
-        .frame-selector input[type="radio"]:not(:checked) + label.cute-label {
-            background-color: #f3f4f6; color: #4b5563;
+        /* 딥 네이비 */
+        .frame-selector input[type="radio"]:checked + label.navy-label {
+            background-color: #0F2C59; color: white; box-shadow: 0 4px 10px rgba(15,44,89,0.4);
         }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center py-6 px-4">
-
-    <!-- 폰트 강제 로드용 숨김 요소 -->
-    <div class="font-preload">
-        <span style="font-family: 'Jua';">폰트로드</span>
-        <span style="font-family: 'Black Han Sans';">폰트로드</span>
-    </div>
 
     <!-- 메인 앱 컨테이너 -->
     <div class="app-container w-full max-w-lg flex flex-col items-center">
@@ -115,8 +110,8 @@
         <!-- 촬영 전 / 촬영 중 화면 (View 1) -->
         <div id="view-camera" class="w-full flex flex-col items-center">
             <div class="py-6 text-center">
-                <h1 class="text-3xl font-bold text-gray-800">📸 의랑초 포토부스</h1>
-                <p class="text-gray-500 mt-1">친구사랑주간 인생네컷</p>
+                <h1 class="text-3xl font-bold text-gray-800">📸 스승의날 포토부스</h1>
+                <p class="text-gray-500 mt-1 font-medium">선생님과 인생네컷</p>
             </div>
 
             <div class="camera-wrap w-full">
@@ -144,21 +139,21 @@
                 <img id="preview-image" src="" alt="완성된 사진 미리보기">
             </div>
 
-            <!-- 프레임 선택기 -->
+            <!-- 프레임 선택기 (3종 컬러) -->
             <div class="w-full bg-gray-50 p-4 rounded-2xl mb-6">
-                <p class="text-center text-sm text-gray-500 font-bold mb-3">👇 원하는 프레임을 선택하세요 👇</p>
-                <div class="flex justify-center gap-3 frame-selector">
+                <p class="text-center text-sm text-gray-500 font-bold mb-3">👇 원하는 프레임 색상을 선택하세요 👇</p>
+                <div class="flex justify-center gap-2 frame-selector">
                     <div>
-                        <input type="radio" id="style-cute" name="frame-style" value="cute" checked>
-                        <label for="style-cute" class="cute-label" style="font-family: 'Jua', sans-serif; font-size: 1.1rem;">
-                            💛 귀여운 노랑
-                        </label>
+                        <input type="radio" id="style-pink" name="frame-style" value="pink" checked>
+                        <label for="style-pink" class="pink-label">🌸 파스텔 핑크</label>
                     </div>
                     <div>
-                        <input type="radio" id="style-hip" name="frame-style" value="hip">
-                        <label for="style-hip" class="hip-label" style="font-family: 'Black Han Sans', sans-serif; font-size: 1.1rem; letter-spacing: 1px;">
-                            🖤 힙한 흑백
-                        </label>
+                        <input type="radio" id="style-blue" name="frame-style" value="blue">
+                        <label for="style-blue" class="blue-label">🌊 톤다운 블루</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="style-navy" name="frame-style" value="navy">
+                        <label for="style-navy" class="navy-label">🌌 딥 네이비</label>
                     </div>
                 </div>
             </div>
@@ -196,7 +191,7 @@
         
         let photos = [];
         let stream = null;
-        let currentStyle = 'cute';
+        let currentStyle = 'pink';
 
         // 1. 카메라 권한 요청 및 비디오 연결
         async function initCamera() {
@@ -301,25 +296,23 @@
             const canvas = document.getElementById('final-canvas');
             const ctx = canvas.getContext('2d');
 
-            // --- 프레임 테마 설정 ---
-            if (currentStyle === 'cute') {
-                ctx.fillStyle = '#FFF9E6'; // 따뜻한 연노랑
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                // 귀여운 테두리
-                ctx.strokeStyle = '#FFD700';
-                ctx.lineWidth = 15;
-                ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
-            } else { // hip style
-                ctx.fillStyle = '#111111'; // 완전 블랙
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                // 힙한 얇은 흰색 테두리
-                ctx.strokeStyle = '#FFFFFF';
-                ctx.lineWidth = 4;
-                ctx.strokeRect(30, 30, canvas.width - 60, canvas.height - 60);
-                ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80);
+            // --- 3종 솔리드 컬러 프레임 테마 설정 ---
+            let bgColor = '';
+            let textColor = '#FFFFFF';
+            let dateColor = '#EEEEEE';
+
+            if (currentStyle === 'pink') {
+                bgColor = '#F28FA0'; // 참고 이미지의 파스텔 핑크
+            } else if (currentStyle === 'blue') {
+                bgColor = '#6788A8'; // 참고 이미지의 톤다운 블루
+            } else if (currentStyle === 'navy') {
+                bgColor = '#0F2C59'; // 참고 이미지의 딥 네이비
+                dateColor = '#CCCCCC'; // 어두운 배경에 맞게 날짜색 미세조정
             }
+
+            // 배경색 채우기
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             // --- 사진 배치 계산 ---
             const padding = 70;
@@ -327,7 +320,7 @@
             const photoWidth = (1200 - (padding * 2) - spacing) / 2;
             const photoHeight = photoWidth * (4/3);
             
-            // 상단 텍스트 공간을 위해 사진 시작 위치(startY)를 아래로 내림 (기존 100 -> 200)
+            // 상단 텍스트 공간
             const startY = 200; 
 
             // 비동기 이미지 로딩 처리를 위한 Promise 배열
@@ -340,66 +333,32 @@
                         const x = padding + (col * (photoWidth + spacing));
                         const y = startY + (row * (photoHeight + spacing));
 
-                        // 프레임에 따른 사진 효과
-                        if (currentStyle === 'cute') {
-                            // 사진 배경(흰색 테두리)
-                            ctx.fillStyle = '#FFFFFF';
-                            roundRect(ctx, x - 15, y - 15, photoWidth + 30, photoHeight + 30, 20);
-                            ctx.fill();
-                            // 둥근 모서리로 사진 그리기
-                            ctx.save();
-                            roundRect(ctx, x, y, photoWidth, photoHeight, 10);
-                            ctx.clip();
-                            ctx.drawImage(img, x, y, photoWidth, photoHeight);
-                            ctx.restore();
-                        } else {
-                            // 힙한 스타일: 직각, 얇은 테두리 (사진 컬러 유지)
-                            ctx.fillStyle = '#333333';
-                            ctx.fillRect(x - 5, y - 5, photoWidth + 10, photoHeight + 10);
-                            
-                            ctx.save();
-                            ctx.drawImage(img, x, y, photoWidth, photoHeight);
-                            ctx.restore();
-                        }
+                        // 둥근 모서리 없이 깔끔한 직각 사진 그리기 (참고 이미지 스타일)
+                        ctx.drawImage(img, x, y, photoWidth, photoHeight);
                         resolve();
                     };
                     img.src = photoUrl;
                 });
             });
 
-            // 모든 사진이 그려진 후에 텍스트와 장식 그리기
+            // 모든 사진이 그려진 후에 텍스트 그리기
             Promise.all(loadPromises).then(() => {
-                // 상단 한 줄 텍스트 Y좌표 (위에서 110px 내려온 지점)
+                // 상단 한 줄 텍스트 Y좌표 
                 const topTextY = 110; 
-                // 하단 날짜 Y좌표 (전체 1800 픽셀 중 사진이 1600픽셀에서 끝나므로 1700에 위치시켜 하단 여백의 정중앙에 배치)
+                // 하단 날짜 Y좌표 
                 const bottomDateY = 1700;  
                 
-                if (currentStyle === 'cute') {
-                    // 귀여운 폰트 및 텍스트 (상단)
-                    ctx.fillStyle = '#FF69B4'; // 핑크
-                    ctx.font = 'bold 70px "Jua", sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText('의랑초등학교 친구사랑주간', canvas.width / 2, topTextY);
-                    
-                    // 귀여운 폰트 날짜 (하단)
-                    ctx.fillStyle = '#8B4513'; // 갈색
-                    ctx.font = '45px "Jua", sans-serif';
-                    ctx.fillText('2026.3.30. ~ 4.3.', canvas.width / 2, bottomDateY);
-
-                } else {
-                    // 힙한 폰트 및 텍스트 (상단)
-                    ctx.fillStyle = '#FFFFFF'; // 흰색
-                    ctx.font = '75px "Black Han Sans", sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText('의랑초등학교 친구사랑주간', canvas.width / 2, topTextY);
-                    
-                    // 힙한 폰트 날짜 (하단)
-                    ctx.fillStyle = '#AAAAAA'; // 회색 날짜
-                    ctx.font = '45px "Black Han Sans", sans-serif';
-                    ctx.fillText('2026.3.30. ~ 4.3.', canvas.width / 2, bottomDateY);
-                }
+                // 상단 텍스트 (선생님과 인생네컷)
+                ctx.fillStyle = textColor; 
+                ctx.font = 'bold 70px "Noto Sans KR", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('선생님과 인생네컷', canvas.width / 2, topTextY);
+                
+                // 하단 텍스트 (스승의날 기념 및 날짜)
+                ctx.fillStyle = dateColor; 
+                ctx.font = '500 40px "Noto Sans KR", sans-serif';
+                ctx.fillText('스승의날 기념 | 2026.05.15', canvas.width / 2, bottomDateY);
 
                 // 캔버스 그림이 완성되면 미리보기 이미지 태그에 적용!
                 previewImage.src = canvas.toDataURL('image/jpeg', 0.95);
@@ -409,30 +368,20 @@
         // --- 유틸리티 함수들 ---
         function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
-        // 모서리가 둥근 사각형 그리기
-        function roundRect(ctx, x, y, width, height, radius) {
-            ctx.beginPath();
-            ctx.moveTo(x + radius, y);
-            ctx.lineTo(x + width - radius, y);
-            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-            ctx.lineTo(x + width, y + height - radius);
-            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-            ctx.lineTo(x + radius, y + height);
-            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-            ctx.lineTo(x, y + radius);
-            ctx.quadraticCurveTo(x, y, x + radius, y);
-            ctx.closePath();
-        }
-
         // 6. 버튼 이벤트들
         downloadBtn.addEventListener('click', () => {
             const canvas = document.getElementById('final-canvas');
             const dataUrl = canvas.toDataURL('image/jpeg', 1.0);
             const link = document.createElement('a');
-            const styleName = currentStyle === 'cute' ? '귀여운노랑' : '힙한흑백';
+            
+            let styleNameKo = '';
+            if(currentStyle === 'pink') styleNameKo = '파스텔핑크';
+            else if(currentStyle === 'blue') styleNameKo = '톤다운블루';
+            else if(currentStyle === 'navy') styleNameKo = '딥네이비';
+
             // 파일명 뒤에 현재 시간(밀리초)을 붙여서 항상 다른 이름으로 저장되게 처리
             const timestamp = Date.now();
-            link.download = `의랑초_인생네컷_${styleName}_${timestamp}.jpg`;
+            link.download = `스승의날_인생네컷_${styleNameKo}_${timestamp}.jpg`;
             link.href = dataUrl;
             document.body.appendChild(link);
             link.click();
